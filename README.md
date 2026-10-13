@@ -88,129 +88,119 @@
 3. Jenkinsfile을 GitHub에 저장하면 누가 언제 배포 절차를 수정했는지 추적할 수 있다.
 
 ## 실습 Freestyle 프로젝트 생성하기
-# Jenkins 학습 기록
 
-## Chapter 02. Jenkins Job — Freestyle & Pipeline
+# Jenkins Chapter 02 — 확인문제 및 정답
 
-### 1. 학습 목표
+## 2-1. Freestyle vs Pipeline
 
-- Jenkins Job의 개념 이해
-- Freestyle과 Pipeline의 차이 이해
-- Freestyle Job 생성 및 Shell 명령어 실행
-- Jenkins 타임존 변경
-- Pipeline Job 생성 및 Stage별 실행
-- 테스트 실패 시 배포 중단 원리 이해
+**Q1. Jenkins Job이란 무엇인가요?**
 
----
+**정답:** Jenkins가 실행할 작업을 정의한 단위입니다. 빌드, 테스트, 배포, 서버 점검 등을 수행할 수 있습니다.
 
-### 2. 핵심 개념
+**Q2. Freestyle Job이란 무엇인가요?**
 
-#### 2.1 Jenkins Job
+**정답:** 주로 Jenkins 웹 UI에서 빌드 단계와 실행 명령어 등을 설정하는 Job입니다.
 
-Jenkins가 수행할 작업을 정의한 단위이다.
+**Q3. Pipeline Job이란 무엇인가요?**
 
-예시:
-- 소스코드 다운로드
-- 애플리케이션 빌드
-- 자동 테스트
-- Docker 이미지 생성
-- 애플리케이션 배포
+**정답:** 빌드, 테스트, 배포 등의 자동화 작업 흐름을 코드로 정의하는 Job입니다.
 
-#### 2.2 Freestyle vs Pipeline
+**Q4. Freestyle과 Pipeline의 가장 큰 차이는 무엇인가요?**
 
-| 구분 | Freestyle | Pipeline |
-|---|---|---|
-| 작업 정의 | Jenkins 웹 UI 중심 | 코드 기반 |
-| 난이도 | 쉬움 | 문법 학습 필요 |
-| Git 버전 관리 | 상대적으로 불편 | Jenkinsfile로 관리 가능 |
-| 복잡한 CI/CD | 관리가 어려워질 수 있음 | 적합 |
-| 활용 | 단순 자동화 | 다단계 빌드·테스트·배포 |
+**정답:** Freestyle은 주로 UI 설정 기반이고, Pipeline은 코드 기반으로 작업 흐름을 정의합니다.
 
-**핵심:** Freestyle도 CI/CD가 가능하지만, Pipeline은 작업 흐름을 코드로 관리하고 단계별로 검증하기 편리하다.
+**Q5. Freestyle에서는 CI/CD를 구현할 수 없나요?**
 
-#### 2.3 Pipeline 주요 문법
-
-| 문법 | 설명 |
-|---|---|
-| `pipeline` | Pipeline 전체 정의 |
-| `agent any` | 사용 가능한 실행 노드 선택 |
-| `stages` | 여러 Stage의 묶음 |
-| `stage` | 개별 실행 단계 |
-| `steps` | 단계 안에서 실행할 작업 |
-| `sh` | Linux Shell 명령어 실행 |
-| `echo` | Jenkins 로그 출력 |
-| `error` | 의도적인 실패 발생 |
+**정답:** 구현할 수 있습니다. 다만 복잡한 작업 흐름과 변경 이력 관리는 Pipeline이 더 편리합니다.
 
 ---
 
-### 3. 실습 기록
+## 2-2. Freestyle 프로젝트 실습
 
-#### 3.1 Freestyle Job 생성
+**Q6. Freestyle Job에서 Linux 명령어를 실행하는 빌드 단계는 무엇인가요?**
 
-- Job 이름: `freestyle-practice2`
-- 실행 방식: Execute shell
-- 확인 항목: 사용자, 호스트명, 시간, 서버 가동 시간, 메모리
+**정답:** `Build Steps → Execute shell`입니다.
 
-**실행 결과:** `Finished: SUCCESS`
+**Q7. Jenkins의 Workspace란 무엇인가요?**
 
-**확인한 내용:**
-- Jenkins는 `jenkins` Linux 계정으로 Shell 명령어를 실행했다.
-- Workspace 경로는 `/var/lib/jenkins/workspace/freestyle-practice2`였다.
-- Console Output에서 실행 결과를 확인했다.
+**정답:** Jenkins가 소스코드를 가져오거나 빌드 작업을 수행하는 작업 디렉터리입니다.
 
-#### 3.2 Jenkins 타임존 변경
+예: `/var/lib/jenkins/workspace/freestyle-practice2`
 
-Ubuntu 서버 시간대 변경:
+**Q8. Console Output의 역할은 무엇인가요?**
 
-`sudo timedatectl set-timezone Asia/Seoul`
+**정답:** Job의 실행 명령어, 출력 결과, 오류 및 최종 빌드 상태를 확인하는 것입니다.
 
-Jenkins JVM 옵션:
+**Q9. Running as SYSTEM과 `whoami` 결과가 `jenkins`인 것은 어떤 차이가 있나요?**
 
-`-Duser.timezone=Asia/Seoul`
+**정답:** SYSTEM은 Jenkins 내부 권한이고, `jenkins`는 실제 Linux 명령어 실행 계정입니다. SYSTEM이 Linux root라는 뜻은 아닙니다.
 
-Jenkins Script Console 확인:
+**Q10. `Finished: SUCCESS`가 의미하는 것은 무엇인가요?**
 
-`println java.util.TimeZone.getDefault().getID()`
-
-**실행 결과:** `Asia/Seoul`
-
-#### 3.3 Pipeline Job 생성
-
-- Job 이름: `pipeline-practice`
-- 실행 단계: Server Info → Resource Check → Finish
-
-**실행 결과:** `Finished: SUCCESS`
-
-#### 3.4 Pipeline 실패 시나리오
-
-다음 흐름으로 테스트 실패 상황을 재현했다.
-
-`Build 성공 → Test 실패 → Deploy 건너뜀`
-
-Test 단계에서 `error '테스트 실패 발생!'`을 실행했다.
-
-**실행 결과:**
-- Build: 성공
-- Test: 실패
-- Deploy: 실행되지 않음
-- Pipeline: `Finished: FAILURE`
-
-**배운 점:** 처리되지 않은 테스트 실패가 발생하면 이후 배포 단계를 실행하지 않도록 구성할 수 있다.
+**정답:** Jenkins가 설정한 작업을 성공 상태로 종료했다는 뜻입니다. 실제 서비스 전체의 정상 동작까지 보장하지는 않습니다.
 
 ---
 
-### 4. 확인문제 및 정답
+## 2-3. Jenkins 타임존 변경
 
-#### 2-1. Freestyle vs Pipeline
+**Q11. UTC와 한국 표준시 KST의 차이는 무엇인가요?**
 
-**Q1. Jenkins Job이란?**
+**정답:** KST는 UTC보다 9시간 빠릅니다.
 
-A. Jenkins가 실행할 작업을 정의한 단위이다.
+**Q12. Ubuntu 서버의 현재 시간대를 확인하는 명령어는 무엇인가요?**
 
-**Q2. Freestyle Job이란?**
+**정답:** `timedatectl`
 
-A. 주로 Jenkins 웹 UI에서 실행할
+**Q13. Ubuntu 서버 시간대를 한국으로 변경하는 명령어는 무엇인가요?**
 
+**정답:** `sudo timedatectl set-timezone Asia/Seoul`
 
+**Q14. Jenkins JVM의 기본 시간대를 확인하는 Groovy 코드는 무엇인가요?**
+
+**정답:** `println java.util.TimeZone.getDefault().getID()`
+
+**Q15. Jenkins JVM의 시간대를 한국으로 설정하는 옵션은 무엇인가요?**
+
+**정답:** `-Duser.timezone=Asia/Seoul`입니다. Ubuntu 운영체제 시간대와 Jenkins JVM 시간대는 별도로 관리될 수 있습니다.
+
+---
+
+## 2-4. Pipeline 프로젝트 실습
+
+**Q16. `pipeline {}`의 의미는 무엇인가요?**
+
+**정답:** Declarative Pipeline의 전체 구조를 정의합니다.
+
+**Q17. `agent any`의 의미는 무엇인가요?**
+
+**정답:** 사용 가능한 Jenkins 실행 노드에서 Pipeline을 실행하도록 지정합니다.
+
+**Q18. `stages`, `stage`, `steps`의 차이는 무엇인가요?**
+
+**정답:**
+- `stages`: 여러 작업 단계의 묶음
+- `stage`: 개별 작업 단계
+- `steps`: 해당 단계에서 실행할 작업
+
+**Q19. `sh`와 `echo`의 차이는 무엇인가요?**
+
+**정답:**
+- `sh`: 실행 노드에서 Linux Shell 명령어 수행
+- `echo`: Jenkins 로그에 메시지 출력
+
+**Q20. Jenkinsfile이란 무엇인가요?**
+
+**정답:** Pipeline 정의를 코드로 작성한 파일이며, Git 저장소에 보관해 버전 관리할 수 있습니다.
+
+---
+
+## 2-5. Pipeline 실무 활용 및 장애 대응
+
+**Q21. 실무에서 Pipeline을 선호하는 이유 세 가지는 무엇인가요?**
+
+**정답:**
+1. Jenkinsfile을 Git으로 버전 관리할 수 있습니다.
+2. Stage별로 작업을 구분하고 실패 지점을 파악하기 쉽습니다.
+3. 복잡한 CI/CD 작업 흐름을 코드
 </details>
 
